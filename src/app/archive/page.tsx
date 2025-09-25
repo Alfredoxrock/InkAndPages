@@ -6,8 +6,8 @@ import { getPublishedPosts } from '@/lib/posts';
 import { BlogPost } from '@/lib/types';
 
 // Simple date formatting function
-function formatDate(dateString: string): string {
-    const date = new Date(dateString);
+function formatDate(dateString: string | number): string {
+    const date = typeof dateString === 'string' ? new Date(dateString) : new Date(dateString);
     const options: Intl.DateTimeFormatOptions = {
         year: 'numeric',
         month: 'long',
@@ -22,9 +22,9 @@ export default function ArchivePage() {
 
     useEffect(() => {
         // Load posts on client side
-        const loadPosts = () => {
+        const loadPosts = async () => {
             try {
-                const allPosts = getPublishedPosts();
+                const allPosts = await getPublishedPosts();
                 setPosts(allPosts);
             } catch (error) {
                 console.error('Error loading posts:', error);

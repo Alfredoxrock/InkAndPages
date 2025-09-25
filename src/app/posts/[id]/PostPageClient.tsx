@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getPostById } from '@/lib/posts';
+import { getPostByIdAsync, getPostById } from '@/lib/posts';
 import { BlogPost } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
@@ -11,40 +11,91 @@ import HtmlContentRenderer from '@/components/HtmlContentRenderer';
 import { trackPostView } from '@/lib/gtag';
 
 interface PostPageClientProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 export default function PostPageClient({ params }: PostPageClientProps) {
+    console.log('=== PostPageClient COMPONENT INSTANTIATED ===');
+    console.log('PostPageClient received params:', params);
+
     const [post, setPost] = useState<BlogPost | null>(null);
     const [loading, setLoading] = useState(true);
+    const [postId, setPostId] = useState<string | null>(null);
     const router = useRouter();
 
-    useEffect(() => {
-        const loadPost = () => {
-            try {
-                const foundPost = getPostById(params.id);
+    console.log('PostPageClient component rendered');
+    console.log('Current URL:', typeof window !== 'undefined' ? window.location.href : 'SSR');
 
-                if (!foundPost || !foundPost.published) {
-                    router.push('/404');
+    useEffect(() => {
+        const getParams = async () => {
+            const resolvedParams = await params;
+            console.log('Resolved params:', resolvedParams);
+            setPostId(resolvedParams.id);
+        };
+        getParams();
+    }, [params]);
+
+    useEffect(() => {
+        if (!postId) return;
+        const loadPost = async () => {
+            try {
+                console.log('PostPageClient: Loading post with ID:', postId);
+
+                // First try synchronous version (for static posts)
+                const syncPost = getPostById(postId);
+                console.log('PostPageClient: Sync post result:', syncPost);
+                if (syncPost) {
+                    console.log('PostPageClient: Found post synchronously:', {
+                        id: syncPost.id,
+                        title: syncPost.title,
+                        published: syncPost.published,
+                        type: typeof syncPost.published
+                    });
+
+                    if (!syncPost.published) {
+                        console.log('PostPageClient: Post not published (sync), redirecting');
+                        router.push('/');
+                        return;
+                    }
+
+                    setPost(syncPost);
+                    setLoading(false);
+                    console.log('PostPageClient: Post content preview:', syncPost.content.substring(0, 200));
+                    trackPostView(syncPost.id, syncPost.title);
+                    return;
+                }
+
+                // If not found synchronously, try async version (for Firestore)
+                console.log('PostPageClient: Trying async lookup...');
+                const foundPost = await getPostByIdAsync(postId);
+                console.log('PostPageClient: Async result:', foundPost);
+
+                if (!foundPost) {
+                    console.log('PostPageClient: Post not found anywhere, redirecting to homepage');
+                    router.push('/');
+                    return;
+                }
+
+                if (!foundPost.published) {
+                    console.log('PostPageClient: Post not published, redirecting to homepage');
+                    router.push('/');
                     return;
                 }
 
                 setPost(foundPost);
-
-                // Track post view for analytics
                 trackPostView(foundPost.id, foundPost.title);
             } catch (error) {
-                console.error('Error loading post:', error);
-                router.push('/404');
+                console.error('PostPageClient: Error loading post:', error);
+                router.push('/');
             } finally {
                 setLoading(false);
             }
         };
 
         loadPost();
-    }, [params.id, router]);
+    }, [postId, router]);
 
     if (loading) {
         return (
@@ -67,7 +118,7 @@ export default function PostPageClient({ params }: PostPageClientProps) {
     }
 
     if (!post) {
-        notFound();
+        return null; // Component will redirect via useEffect
     }
 
     return (
@@ -91,7 +142,16 @@ export default function PostPageClient({ params }: PostPageClientProps) {
                     <header className="mb-12">
                         <div className="flex items-center text-sm text-muted mb-4">
                             <time className="font-medium">
-                                <span>{format(new Date(post.publishedAt), 'MMMM dd, yyyy')}</span>
+                                <span>
+                                    {(() => {
+                                        try {
+                                            return format(new Date(post.publishedAt), 'MMMM dd, yyyy');
+                                        } catch (error) {
+                                            console.error('Date formatting error:', error, 'publishedAt:', post.publishedAt);
+                                            return 'Date unavailable';
+                                        }
+                                    })()}
+                                </span>
                             </time>
                             <span className="mx-3">•</span>
                             <span>{post.readingTime} min read</span>
@@ -102,7 +162,16 @@ export default function PostPageClient({ params }: PostPageClientProps) {
                         </h1>
 
                         <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
-                            <span>{formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true })}</span>
+                            <span>
+                                {(() => {
+                                    try {
+                                        return formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true });
+                                    } catch (error) {
+                                        console.error('formatDistanceToNow error:', error);
+                                        return 'Recently published';
+                                    }
+                                })()}
+                            </span>
                         </div>
 
                         {/* Tags */}
@@ -134,11 +203,14 @@ export default function PostPageClient({ params }: PostPageClientProps) {
                     {/* Article Content */}
                     <article className="prose prose-lg prose-gray max-w-none">
                         {/* Check if content contains HTML tags, if so use HTML renderer, otherwise use Markdown */}
-                        {post.content.includes('<') && post.content.includes('>') ? (
-                            <HtmlContentRenderer content={post.content} />
-                        ) : (
-                            <MarkdownRenderer content={post.content} />
-                        )}
+                        {(() => {
+                            console.log('Rendering content for post:', post.title, 'Content type:', typeof post.content, 'Length:', post.content.length);
+                            return post.content.includes('<') && post.content.includes('>') ? (
+                                <HtmlContentRenderer content={post.content} />
+                            ) : (
+                                <MarkdownRenderer content={post.content} />
+                            );
+                        })()}
                     </article>
 
                     {/* Bottom Navigation */}

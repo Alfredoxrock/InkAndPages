@@ -5,15 +5,38 @@ import Link from "next/link";
 import { getPublishedPosts } from "@/lib/posts";
 import { BlogPost } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
+import PostPageClient from "@/app/posts/[id]/PostPageClient";
 
 export default function Home() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isPostRoute, setIsPostRoute] = useState(false);
+  const [postId, setPostId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadPosts = () => {
+    console.log('Homepage component loaded');
+    console.log('Current URL:', window.location.href);
+    console.log('Current pathname:', window.location.pathname);
+
+    // Check if we're actually on a post URL
+    const pathname = window.location.pathname;
+    const postMatch = pathname.match(/^\/posts\/(.+)$/);
+
+    if (postMatch) {
+      console.log('Detected post URL, extracting post ID:', postMatch[1]);
+      setIsPostRoute(true);
+      setPostId(postMatch[1]);
+      return; // Don't load homepage posts if we're on a post route
+    }
+
+    const loadPosts = async () => {
       try {
-        const publishedPosts = getPublishedPosts();
+        const publishedPosts = await getPublishedPosts();
+        console.log('Loaded posts on homepage:', publishedPosts);
+        console.log('Number of posts:', publishedPosts.length);
+        publishedPosts.forEach(post => {
+          console.log(`Post: ${post.title} - ID: ${post.id} - Published: ${post.published}`);
+        });
         setPosts(publishedPosts);
       } catch (error) {
         console.error('Error loading posts:', error);
@@ -24,6 +47,13 @@ export default function Home() {
 
     loadPosts();
   }, []);
+
+  // If we detected a post URL, render the PostPageClient instead of homepage
+  if (isPostRoute && postId) {
+    console.log('Rendering PostPageClient for post ID:', postId);
+    const mockParams = Promise.resolve({ id: postId });
+    return <PostPageClient params={mockParams} />;
+  }
 
   return (
     <div className="relative min-h-screen">
@@ -143,15 +173,19 @@ export default function Home() {
                       ))}
                     </div>
 
-                    <Link
+                    <a
                       href={`/posts/${post.id}`}
                       className="inline-flex items-center text-accent hover:text-accent-light font-medium transition-colors duration-200 group/link"
+                      onClick={(e) => {
+                        console.log('Read Story clicked for post:', post.id, post.title);
+                        // Let the default navigation happen
+                      }}
                     >
                       Read Story
                       <svg className="w-4 h-4 ml-2 transition-transform duration-200 group-hover/link:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
-                    </Link>
+                    </a>
                   </div>
                 </article>
               ))}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { savePost } from '@/lib/dynamicPosts';
+import { createPost } from '@/lib/posts';
 import RichTextEditor from '@/components/RichTextEditor';
 
 export default function NewPostPage() {
@@ -31,21 +31,30 @@ export default function NewPostPage() {
     setSaving(true);
 
     try {
-      // Save the post
-      const newPost = savePost({
+      // Calculate reading time (rough estimate: 250 words per minute)
+      const wordCount = content.trim().split(/\s+/).length;
+      const readingTime = Math.max(1, Math.ceil(wordCount / 250));
+
+      // Parse tags
+      const tagList = tags.trim() ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
+
+      // Create the post using Firestore
+      const postId = await createPost({
         title: title.trim(),
         content: content.trim(),
-        excerpt: excerpt.trim(),
-        tags: tags.trim(),
-        published
+        excerpt: excerpt.trim() || '',
+        tags: tagList,
+        published,
+        readingTime,
+        publishedAt: published ? Date.now() : 0
       });
 
       const action = published ? 'published' : 'saved as draft';
-      alert(`Post "${newPost.title}" ${action} successfully!`);
+      alert(`Post "${title.trim()}" ${action} successfully!`);
 
       // Redirect to the new post or admin dashboard
       if (published) {
-        router.push(`/posts/${newPost.id}`);
+        router.push(`/posts/${postId}`);
       } else {
         router.push('/admin');
       }

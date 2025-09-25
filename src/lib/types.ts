@@ -1,10 +1,11 @@
 export interface BlogPost {
   id: string;
   title: string;
-  excerpt: string;
+  excerpt?: string;
   content: string;
-  publishedAt: string;
-  updatedAt: string;
+  publishedAt: string | number;
+  updatedAt?: string | number;
+  createdAt?: string | number;
   tags: string[];
   readingTime: number; // in minutes
   published: boolean;

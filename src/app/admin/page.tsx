@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { getStoredPosts, deletePost } from '@/lib/dynamicPosts';
+import { getAllPosts, deletePost, migratePosts } from '@/lib/posts';
+import { getStoredPosts } from '@/lib/dynamicPosts';
 import { BlogPost } from '@/lib/types';
 
 export default function AdminPage() {
@@ -12,6 +13,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
+  const [migrating, setMigrating] = useState(false);
 
   useEffect(() => {
     if (!loading && (!user || !isWriter)) {
@@ -25,28 +27,49 @@ export default function AdminPage() {
     }
   }, [user, isWriter]);
 
-  const loadPosts = () => {
+  const loadPosts = async () => {
     setPostsLoading(true);
     try {
-      const userPosts = getStoredPosts();
+      const userPosts = await getAllPosts();
       setPosts(userPosts);
     } catch (error) {
       console.error('Error loading posts:', error);
+      // Fallback to localStorage
+      try {
+        const localPosts = getStoredPosts();
+        setPosts(localPosts);
+      } catch (localError) {
+        console.error('Error loading local posts:', localError);
+      }
     } finally {
       setPostsLoading(false);
+    }
+  };
+
+  const handleMigratePosts = async () => {
+    if (!confirm('This will migrate all posts from localStorage to Firestore. Continue?')) {
+      return;
+    }
+
+    setMigrating(true);
+    try {
+      await migratePosts();
+      alert('Posts migrated successfully!');
+      await loadPosts(); // Reload posts to show the migrated ones
+    } catch (error) {
+      console.error('Error during migration:', error);
+      alert('Migration failed. Please try again.');
+    } finally {
+      setMigrating(false);
     }
   };
 
   const handleDeletePost = async (postId: string) => {
     if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
       try {
-        const success = deletePost(postId);
-        if (success) {
-          loadPosts(); // Reload posts
-          alert('Post deleted successfully!');
-        } else {
-          alert('Failed to delete post. Post not found.');
-        }
+        await deletePost(postId);
+        await loadPosts(); // Reload posts
+        alert('Post deleted successfully!');
       } catch (error) {
         console.error('Error deleting post:', error);
         alert('Failed to delete post. Please try again.');
@@ -54,8 +77,9 @@ export default function AdminPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string | number) => {
+    const date = typeof dateString === 'string' ? new Date(dateString) : new Date(dateString);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -102,6 +126,13 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            <button
+              onClick={handleMigratePosts}
+              disabled={migrating || postsLoading}
+              className="px-4 py-2 border-2 border-accent text-accent hover:bg-accent hover:text-white rounded-lg transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {migrating ? 'Migrating...' : 'Migrate Posts'}
+            </button>
             <Link
               href="/admin/new"
               className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium"
@@ -199,8 +230,8 @@ export default function AdminPage() {
                           {post.title}
                         </h3>
                         <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${post.published
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-orange-100 text-orange-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-orange-100 text-orange-800'
                           }`}>
                           <div className={`w-1.5 h-1.5 rounded-full mr-1 ${post.published ? 'bg-green-400' : 'bg-orange-400'
                             }`}></div>
@@ -216,7 +247,7 @@ export default function AdminPage() {
 
                       <div className="flex items-center text-xs text-muted space-x-4">
                         <span>Created {formatDate(post.publishedAt)}</span>
-                        {post.updatedAt !== post.publishedAt && (
+                        {post.updatedAt && post.updatedAt !== post.publishedAt && (
                           <span>• Updated {formatDate(post.updatedAt)}</span>
                         )}
                         <span>• {post.readingTime} min read</span>
