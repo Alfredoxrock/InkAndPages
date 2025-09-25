@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { savePost } from '@/lib/dynamicPosts';
+import RichTextEditor from '@/components/RichTextEditor';
 
 export default function NewPostPage() {
   const { user, loading, isWriter } = useAuth();
@@ -121,12 +122,15 @@ export default function NewPostPage() {
           </div>
 
           <div className="p-6">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Begin writing your story here..."
-              rows={20}
-              className="w-full bg-transparent border-none outline-none text-foreground placeholder-muted resize-none leading-relaxed"
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Story Content
+              </label>
+            </div>
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              placeholder="Begin writing your story here... Use the toolbar above to format text, add images, and more!"
             />
           </div>
         </div>

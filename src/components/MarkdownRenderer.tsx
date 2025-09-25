@@ -15,12 +15,13 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       gfm: true,
     });
 
-    // Convert markdown to HTML
-    return marked.parse(content);
+    // Convert markdown to HTML - ensure it returns a string
+    const result = marked.parse(content);
+    return typeof result === 'string' ? result : '';
   }, [content]);
 
   return (
-    <div 
+    <div
       className="prose-content max-w-none 
       [&_h1]:text-4xl [&_h1]:mb-8 [&_h1]:mt-12 [&_h1]:font-serif [&_h1]:font-bold [&_h1]:text-foreground [&_h1]:leading-tight
       [&_h2]:text-3xl [&_h2]:mb-6 [&_h2]:mt-10 [&_h2]:font-serif [&_h2]:font-bold [&_h2]:text-foreground [&_h2]:leading-tight  
@@ -36,7 +37,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       [&_li]:text-lg [&_li]:leading-relaxed
       [&_strong]:font-semibold
       [&_em]:italic"
-      dangerouslySetInnerHTML={{ __html: htmlContent }} 
+      dangerouslySetInnerHTML={{ __html: htmlContent }}
     />
   );
 }

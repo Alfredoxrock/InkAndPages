@@ -7,6 +7,7 @@ import { getPostById } from '@/lib/posts';
 import { BlogPost } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
+import HtmlContentRenderer from '@/components/HtmlContentRenderer';
 import { trackPostView } from '@/lib/gtag';
 
 interface PostPageClientProps {
@@ -132,7 +133,12 @@ export default function PostPageClient({ params }: PostPageClientProps) {
 
                     {/* Article Content */}
                     <article className="prose prose-lg prose-gray max-w-none">
-                        <MarkdownRenderer content={post.content} />
+                        {/* Check if content contains HTML tags, if so use HTML renderer, otherwise use Markdown */}
+                        {post.content.includes('<') && post.content.includes('>') ? (
+                            <HtmlContentRenderer content={post.content} />
+                        ) : (
+                            <MarkdownRenderer content={post.content} />
+                        )}
                     </article>
 
                     {/* Bottom Navigation */}
