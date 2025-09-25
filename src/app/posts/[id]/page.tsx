@@ -1,20 +1,12 @@
-import { notFound } from 'next/navigation';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { notFound, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getAllPosts, getPostById } from '@/lib/staticPosts';
+import { getPostById } from '@/lib/posts';
+import { BlogPost } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
-
-// Generate static params for all posts
-export function generateStaticParams() {
-  try {
-    const posts = getAllPosts();
-    return posts.map((post) => ({
-      id: post.id,
-    }));
-  } catch {
-    return [];
-  }
-}
 
 interface PostPageProps {
   params: {
@@ -23,10 +15,45 @@ interface PostPageProps {
 }
 
 export default function PostPage({ params }: PostPageProps) {
-  const post = getPostById(params.id);
+  const [post, setPost] = useState<BlogPost | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-  if (!post || !post.published) {
-    notFound();
+  useEffect(() => {
+    const loadPost = () => {
+      try {
+        const foundPost = getPostById(params.id);
+        
+        if (!foundPost || !foundPost.published) {
+          router.push('/404');
+          return;
+        }
+        
+        setPost(foundPost);
+      } catch (error) {
+        console.error('Error loading post:', error);
+        router.push('/404');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPost();
+  }, [params.id, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted">Loading story...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!post) {
+    return null;
   }
 
   return (

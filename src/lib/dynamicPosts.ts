@@ -18,7 +18,7 @@ export function generatePostId(title: string): string {
 // Get all posts from localStorage
 export function getStoredPosts(): BlogPost[] {
     if (typeof window === 'undefined') return [];
-    
+
     try {
         const stored = localStorage.getItem(POSTS_STORAGE_KEY);
         return stored ? JSON.parse(stored) : [];
@@ -31,7 +31,7 @@ export function getStoredPosts(): BlogPost[] {
 // Save posts to localStorage
 export function savePostsToStorage(posts: BlogPost[]): void {
     if (typeof window === 'undefined') return;
-    
+
     try {
         localStorage.setItem(POSTS_STORAGE_KEY, JSON.stringify(posts));
     } catch (error) {
@@ -83,7 +83,7 @@ export function updatePost(id: string, postData: {
 }): BlogPost | null {
     const existingPosts = getStoredPosts();
     const postIndex = existingPosts.findIndex(post => post.id === id);
-    
+
     if (postIndex === -1) {
         return null;
     }
@@ -115,7 +115,7 @@ export function updatePost(id: string, postData: {
 export function deletePost(id: string): boolean {
     const existingPosts = getStoredPosts();
     const filteredPosts = existingPosts.filter(post => post.id !== id);
-    
+
     if (filteredPosts.length === existingPosts.length) {
         return false; // Post not found
     }

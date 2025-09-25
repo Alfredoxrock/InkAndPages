@@ -7,7 +7,7 @@ import { BlogPost } from './types';
 export function getAllPosts(): BlogPost[] {
     const staticPosts = getStaticPosts();
     const dynamicPosts = typeof window !== 'undefined' ? getStoredPosts() : [];
-    
+
     // Combine and sort by publishedAt date (newest first)
     const allPosts = [...dynamicPosts, ...staticPosts];
     return allPosts.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
@@ -25,7 +25,7 @@ export function getPostById(id: string): BlogPost | null {
         const dynamicPost = getDynamicPostById(id);
         if (dynamicPost) return dynamicPost;
     }
-    
+
     // Then check static posts
     return getStaticPostById(id);
 }

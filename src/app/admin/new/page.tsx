@@ -41,7 +41,7 @@ export default function NewPostPage() {
 
       const action = published ? 'published' : 'saved as draft';
       alert(`Post "${newPost.title}" ${action} successfully!`);
-      
+
       // Redirect to the new post or admin dashboard
       if (published) {
         router.push(`/posts/${newPost.id}`);

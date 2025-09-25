@@ -198,24 +198,22 @@ export default function AdminPage() {
                         <h3 className="text-lg font-serif font-bold text-foreground truncate">
                           {post.title}
                         </h3>
-                        <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
-                          post.published 
-                            ? 'bg-green-100 text-green-800' 
+                        <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${post.published
+                            ? 'bg-green-100 text-green-800'
                             : 'bg-orange-100 text-orange-800'
-                        }`}>
-                          <div className={`w-1.5 h-1.5 rounded-full mr-1 ${
-                            post.published ? 'bg-green-400' : 'bg-orange-400'
-                          }`}></div>
+                          }`}>
+                          <div className={`w-1.5 h-1.5 rounded-full mr-1 ${post.published ? 'bg-green-400' : 'bg-orange-400'
+                            }`}></div>
                           {post.published ? 'Published' : 'Draft'}
                         </span>
                       </div>
-                      
+
                       {post.excerpt && (
                         <p className="text-muted text-sm mb-2 line-clamp-2">
                           {post.excerpt}
                         </p>
                       )}
-                      
+
                       <div className="flex items-center text-xs text-muted space-x-4">
                         <span>Created {formatDate(post.publishedAt)}</span>
                         {post.updatedAt !== post.publishedAt && (
@@ -227,7 +225,7 @@ export default function AdminPage() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2 ml-4">
                       <Link
                         href={`/posts/${post.id}`}
