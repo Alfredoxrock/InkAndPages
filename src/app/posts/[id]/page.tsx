@@ -23,12 +23,12 @@ export default function PostPage({ params }: PostPageProps) {
     const loadPost = () => {
       try {
         const foundPost = getPostById(params.id);
-        
+
         if (!foundPost || !foundPost.published) {
           router.push('/404');
           return;
         }
-        
+
         setPost(foundPost);
       } catch (error) {
         console.error('Error loading post:', error);
