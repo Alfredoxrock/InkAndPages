@@ -1,9 +1,29 @@
+'use client';
+
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { getPublishedPosts } from "@/lib/staticPosts";
+import { getPublishedPosts } from "@/lib/posts";
+import { BlogPost } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 
 export default function Home() {
-  const posts = getPublishedPosts();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPosts = () => {
+      try {
+        const publishedPosts = getPublishedPosts();
+        setPosts(publishedPosts);
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPosts();
+  }, []);
 
   return (
     <div className="relative min-h-screen">

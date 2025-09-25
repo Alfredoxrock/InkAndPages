@@ -1,5 +1,8 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getAllPosts } from '@/lib/staticPosts';
+import { getPublishedPosts } from '@/lib/posts';
 import { BlogPost } from '@/lib/types';
 
 // Simple date formatting function
@@ -13,8 +16,36 @@ function formatDate(dateString: string): string {
     return date.toLocaleDateString('en-US', options);
 }
 
-export default async function ArchivePage() {
-    const posts = await getAllPosts();
+export default function ArchivePage() {
+    const [posts, setPosts] = useState<BlogPost[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // Load posts on client side
+        const loadPosts = () => {
+            try {
+                const allPosts = getPublishedPosts();
+                setPosts(allPosts);
+            } catch (error) {
+                console.error('Error loading posts:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadPosts();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-muted">Loading stories...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen py-12 px-6">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { savePost } from '@/lib/dynamicPosts';
 
 export default function NewPostPage() {
   const { user, loading, isWriter } = useAuth();
@@ -29,9 +30,24 @@ export default function NewPostPage() {
     setSaving(true);
 
     try {
+      // Save the post
+      const newPost = savePost({
+        title: title.trim(),
+        content: content.trim(),
+        excerpt: excerpt.trim(),
+        tags: tags.trim(),
+        published
+      });
+
       const action = published ? 'published' : 'saved as draft';
-      alert(`Post ${action} successfully!`);
-      router.push('/admin');
+      alert(`Post "${newPost.title}" ${action} successfully!`);
+      
+      // Redirect to the new post or admin dashboard
+      if (published) {
+        router.push(`/posts/${newPost.id}`);
+      } else {
+        router.push('/admin');
+      }
     } catch (error) {
       console.error('Error saving post:', error);
       alert('Failed to save post. Please try again.');
