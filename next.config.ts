@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Dynamic configuration for Vercel deployment
+  output: 'export',
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
   images: {

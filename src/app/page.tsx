@@ -84,17 +84,11 @@ export default function Home() {
             <div className="text-center py-16">
               <div className="w-24 h-24 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-12 h-12 text-accent/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6.5A2.5 2.5 0 0 0 4 4.5v15z M9 2v20" />
                 </svg>
               </div>
-              <h3 className="text-xl font-serif text-muted mb-2">The pages await your stories</h3>
-              <p className="text-muted/80 mb-6">No posts have been published yet.</p>
-              <Link
-                href="/admin"
-                className="inline-block px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium"
-              >
-                Write Your First Story
-              </Link>
+              <h3 className="text-xl font-serif text-muted mb-2">New stories coming soon</h3>
+              <p className="text-muted/80">Check back for fresh tales and thoughts.</p>
             </div>
           ) : (
             <div className="space-y-12">
