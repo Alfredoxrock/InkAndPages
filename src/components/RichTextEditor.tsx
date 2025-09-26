@@ -18,7 +18,21 @@ export default function RichTextEditor({ content, onChange, placeholder = "Start
 
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                // Configure paragraph handling for better line breaks
+                paragraph: {
+                    HTMLAttributes: {
+                        class: 'mb-4',
+                    },
+                },
+                // Configure hard break for line breaks
+                hardBreak: {
+                    keepMarks: false,
+                    HTMLAttributes: {
+                        class: 'block mb-2',
+                    },
+                },
+            }),
             Image.configure({
                 inline: false,
                 allowBase64: false,
@@ -188,6 +202,19 @@ export default function RichTextEditor({ content, onChange, placeholder = "Start
                             </svg>
                         </button>
                     </div>
+
+                    <div className="w-px bg-border/30 mx-1"></div>
+
+                    {/* Line Break */}
+                    <button
+                        onClick={() => editor.chain().focus().setHardBreak().run()}
+                        className="p-2 rounded hover:bg-accent/10 transition-colors text-muted hover:text-foreground"
+                        title="Insert Line Break"
+                    >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" />
+                        </svg>
+                    </button>
 
                     <div className="w-px bg-border/30 mx-1"></div>
 

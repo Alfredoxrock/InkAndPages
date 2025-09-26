@@ -8,7 +8,8 @@ import {
     createPost as createFirestorePost,
     updatePost as updateFirestorePost,
     deletePost as deleteFirestorePost,
-    migrateLocalStoragePosts
+    migrateLocalStoragePosts,
+    clearAllPosts as clearAllFirestorePosts
 } from './firestore';
 import { BlogPost } from './types';
 
@@ -163,6 +164,27 @@ export async function migratePosts(): Promise<void> {
         await migrateLocalStoragePosts();
     } catch (error) {
         console.error('Error during migration:', error);
+    }
+}
+
+// Clear all posts from all sources
+export async function clearAllPosts(): Promise<void> {
+    try {
+        console.log('🧹 Starting to clear all posts from all sources...');
+
+        // Clear Firestore posts
+        await clearAllFirestorePosts();
+
+        // Clear localStorage posts
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('blog_posts');
+            console.log('✅ Cleared localStorage posts');
+        }
+
+        console.log('🎉 All posts have been cleared from all sources!');
+    } catch (error) {
+        console.error('❌ Error clearing posts:', error);
+        throw error;
     }
 }
 

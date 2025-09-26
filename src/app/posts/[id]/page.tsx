@@ -6,6 +6,12 @@ import PostPageClient from './PostPageClient';
 // will be handled client-side in PostPageClient
 export async function generateStaticParams() {
   const staticPosts = getStaticPosts();
+
+  // If no static posts exist, return an empty array
+  if (staticPosts.length === 0) {
+    return [];
+  }
+
   return staticPosts.map((post) => ({
     id: post.id,
   }));

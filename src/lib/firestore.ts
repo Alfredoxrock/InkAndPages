@@ -250,3 +250,31 @@ export const migrateLocalStoragePosts = async (): Promise<void> => {
         throw error;
     }
 };
+
+// Clear all posts from Firestore
+export const clearAllPosts = async (): Promise<void> => {
+    try {
+        console.log('Starting to clear all posts from Firestore...');
+
+        const q = query(collection(db, POSTS_COLLECTION));
+        const querySnapshot = await getDocs(q);
+
+        console.log(`Found ${querySnapshot.docs.length} posts to delete`);
+
+        // Delete all posts
+        const deletePromises = querySnapshot.docs.map(async (docSnapshot) => {
+            try {
+                await deleteDoc(docSnapshot.ref);
+                console.log(`Deleted post: ${docSnapshot.data().title}`);
+            } catch (error) {
+                console.error(`Failed to delete post ${docSnapshot.id}:`, error);
+            }
+        });
+
+        await Promise.all(deletePromises);
+        console.log('All Firestore posts have been cleared');
+    } catch (error) {
+        console.error('Error clearing all posts:', error);
+        throw error;
+    }
+};

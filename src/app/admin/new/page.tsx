@@ -23,7 +23,7 @@ export default function NewPostPage() {
   }, [user, loading, isWriter, router]);
 
   const handleSave = async (published: boolean = false) => {
-    if (!title.trim() || !content.trim()) {
+    if (!title.trim() || !content.replace(/<[^>]*>/g, '').trim()) {
       alert('Please fill in both title and content');
       return;
     }
@@ -41,7 +41,7 @@ export default function NewPostPage() {
       // Create the post using Firestore
       const postId = await createPost({
         title: title.trim(),
-        content: content.trim(),
+        content: content, // Don't trim content to preserve formatting and line breaks
         excerpt: excerpt.trim() || '',
         tags: tagList,
         published,
@@ -149,7 +149,7 @@ export default function NewPostPage() {
             {title.trim() && (
               <span>Title: "{title}"  </span>
             )}
-            {content.trim() && (
+            {content.replace(/<[^>]*>/g, '').trim() && (
               <span>{content.length} characters</span>
             )}
           </div>
@@ -157,14 +157,14 @@ export default function NewPostPage() {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => handleSave(false)}
-              disabled={saving || !title.trim() || !content.trim()}
+              disabled={saving || !title.trim() || !content.replace(/<[^>]*>/g, '').trim()}
               className="px-6 py-3 border-2 border-muted text-muted hover:border-accent hover:text-accent rounded-lg transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : 'Save Draft'}
             </button>
             <button
               onClick={() => handleSave(true)}
-              disabled={saving || !title.trim() || !content.trim()}
+              disabled={saving || !title.trim() || !content.replace(/<[^>]*>/g, '').trim()}
               className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Publishing...' : 'Publish Story'}

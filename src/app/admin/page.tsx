@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { getAllPosts, deletePost, migratePosts } from '@/lib/posts';
+import { getAllPosts, deletePost, migratePosts, clearAllPosts } from '@/lib/posts';
 import { getStoredPosts } from '@/lib/dynamicPosts';
 import { BlogPost } from '@/lib/types';
 
@@ -59,6 +59,28 @@ export default function AdminPage() {
     } catch (error) {
       console.error('Error during migration:', error);
       alert('Migration failed. Please try again.');
+    } finally {
+      setMigrating(false);
+    }
+  };
+
+  const handleClearAllPosts = async () => {
+    if (!confirm('⚠️ WARNING: This will permanently delete ALL posts from all sources (Firestore, localStorage). This action cannot be undone. Are you absolutely sure?')) {
+      return;
+    }
+
+    if (!confirm('🚨 FINAL WARNING: This will delete EVERYTHING. Type "DELETE ALL" if you really want to proceed.')) {
+      return;
+    }
+
+    setMigrating(true); // Reuse the migrating state for UI
+    try {
+      await clearAllPosts();
+      alert('🧹 All posts have been cleared successfully!');
+      await loadPosts(); // Reload to show empty state
+    } catch (error) {
+      console.error('Error clearing all posts:', error);
+      alert('❌ Failed to clear posts. Please try again or check the console for details.');
     } finally {
       setMigrating(false);
     }
@@ -126,6 +148,13 @@ export default function AdminPage() {
             </p>
           </div>
           <div className="flex items-center space-x-4">
+            <button
+              onClick={handleClearAllPosts}
+              disabled={migrating || postsLoading}
+              className="px-4 py-2 border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white rounded-lg transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {migrating ? 'Clearing...' : '🧹 Clear All Posts'}
+            </button>
             <button
               onClick={handleMigratePosts}
               disabled={migrating || postsLoading}

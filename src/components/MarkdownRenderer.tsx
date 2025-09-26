@@ -11,8 +11,9 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const htmlContent = useMemo(() => {
     // Configure marked options for better rendering
     marked.setOptions({
-      breaks: true,
-      gfm: true,
+      breaks: true, // Convert \n to <br>
+      gfm: true,    // GitHub Flavored Markdown
+      pedantic: false,
     });
 
     // Convert markdown to HTML - ensure it returns a string
