@@ -34,6 +34,18 @@ export async function generateMetadata({
     };
   }
 
+  // If post is not published, return generic metadata for non-writers
+  if (!post.published) {
+    return {
+      title: 'Draft Post - Ink & Pages',
+      description: 'This post is currently in draft mode.',
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
   const postDescription = post.excerpt ||
     post.content.replace(/<[^>]*>/g, '').substring(0, 160) + '...';
 

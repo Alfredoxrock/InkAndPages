@@ -6,8 +6,10 @@ import { getPublishedPosts } from "@/lib/posts";
 import { BlogPost } from "@/lib/types";
 import { formatDistanceToNow } from "date-fns";
 import PostPageClient from "@/app/posts/[id]/PostPageClient";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
+  const { isWriter } = useAuth();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPostRoute, setIsPostRoute] = useState(false);
@@ -123,7 +125,23 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {posts.map((post) => (
-                <article key={post.id} className="bg-paper/60 backdrop-blur-sm rounded-lg border border-border/30 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                <article key={post.id} className="bg-paper/60 backdrop-blur-sm rounded-lg border border-border/30 overflow-hidden hover:shadow-xl transition-all duration-300 group relative">
+                  {/* Writer Controls - Only show for writers */}
+                  {isWriter && (
+                    <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <Link
+                        href={`/admin/edit/${post.id}`}
+                        className="inline-flex items-center px-3 py-1 bg-white/90 backdrop-blur-sm text-accent hover:text-accent-light border border-accent/20 rounded-full text-sm font-medium shadow-sm transition-all duration-200"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit
+                      </Link>
+                    </div>
+                  )}
+                  
                   <Link href={`/posts/${post.id}`}>
                     {/* Image */}
                     <div className="relative h-48 overflow-hidden">

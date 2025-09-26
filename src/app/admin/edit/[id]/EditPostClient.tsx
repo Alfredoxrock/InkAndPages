@@ -1,16 +1,22 @@
-﻿'use client';
+"use client";
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import { createPost } from '@/lib/posts';
+import { getPostByIdAsync, updatePost } from '@/lib/posts';
+import { BlogPost } from '@/lib/types';
 import RichTextEditor from '@/components/RichTextEditor';
 import { compressImage, validateImageFile, formatFileSize } from '@/lib/imageUtils';
 
-export default function NewPostPage() {
+interface EditPostClientProps {
+  postId: string;
+}
+
+export default function EditPostClient({ postId }: EditPostClientProps) {
   const { user, loading, isWriter } = useAuth();
   const router = useRouter();
+  const [originalPost, setOriginalPost] = useState<BlogPost | null>(null);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [excerpt, setExcerpt] = useState('');
@@ -23,17 +29,56 @@ export default function NewPostPage() {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [autoSaving, setAutoSaving] = useState(false);
+  const [loadingPost, setLoadingPost] = useState(true);
 
+  // Authentication check
   useEffect(() => {
     if (!loading && (!user || !isWriter)) {
       router.push('/login');
     }
   }, [user, loading, isWriter, router]);
 
+  // Load existing post
+  useEffect(() => {
+    if (!postId || !user || !isWriter) return;
+    
+    const loadPost = async () => {
+      try {
+        setLoadingPost(true);
+        const post = await getPostByIdAsync(postId);
+        
+        if (!post) {
+          alert('Post not found');
+          router.push('/admin');
+          return;
+        }
+
+        setOriginalPost(post);
+        setTitle(post.title);
+        setContent(post.content);
+        setExcerpt(post.excerpt || '');
+        setTags(post.tags.join(', '));
+        setCoverImage(post.coverImage || '');
+        if (post.coverImage) {
+          setImagePreview(post.coverImage);
+        }
+      } catch (error) {
+        console.error('Error loading post:', error);
+        alert('Error loading post');
+        router.push('/admin');
+      } finally {
+        setLoadingPost(false);
+      }
+    };
+
+    loadPost();
+  }, [postId, user, isWriter, router]);
+
   // Auto-save functionality
   const saveToLocalStorage = useCallback(() => {
-    if (typeof window !== 'undefined' && (title.trim() || content.trim() || excerpt.trim() || tags.trim())) {
+    if (typeof window !== 'undefined' && postId && (title.trim() || content.trim() || excerpt.trim() || tags.trim())) {
       const draftData = {
+        postId,
         title: title.trim(),
         content,
         excerpt: excerpt.trim(),
@@ -42,51 +87,42 @@ export default function NewPostPage() {
         imagePreview,
         lastSaved: new Date().toISOString()
       };
-      localStorage.setItem('blog_post_draft', JSON.stringify(draftData));
+      localStorage.setItem(`blog_post_edit_${postId}`, JSON.stringify(draftData));
       setLastSaved(new Date());
     }
-  }, [title, content, excerpt, tags, coverImage, imagePreview]);
+  }, [postId, title, content, excerpt, tags, coverImage, imagePreview]);
 
   // Auto-save every 30 seconds
   useEffect(() => {
+    if (loadingPost) return;
+    
     const autoSaveInterval = setInterval(() => {
       if (!saving && !autoSaving && (title.trim() || content.trim() || excerpt.trim() || tags.trim())) {
         setAutoSaving(true);
         saveToLocalStorage();
         setTimeout(() => setAutoSaving(false), 1000);
       }
-    }, 30000); // 30 seconds
+    }, 30000);
 
     return () => clearInterval(autoSaveInterval);
-  }, [saving, autoSaving, title, content, excerpt, tags, saveToLocalStorage]);
+  }, [saving, autoSaving, title, content, excerpt, tags, saveToLocalStorage, loadingPost]);
 
-  // Load draft from localStorage on component mount
+  // Save on input change (debounced)
   useEffect(() => {
-    if (typeof window !== 'undefined' && user && isWriter) {
-      const savedDraft = localStorage.getItem('blog_post_draft');
-      if (savedDraft) {
-        try {
-          const draftData = JSON.parse(savedDraft);
-          setTitle(draftData.title || '');
-          setContent(draftData.content || '');
-          setExcerpt(draftData.excerpt || '');
-          setTags(draftData.tags || '');
-          setCoverImage(draftData.coverImage || '');
-          setImagePreview(draftData.imagePreview || '');
-          if (draftData.lastSaved) {
-            setLastSaved(new Date(draftData.lastSaved));
-          }
-        } catch (error) {
-          console.error('Error loading draft:', error);
-        }
+    if (loadingPost) return;
+    
+    const saveTimeout = setTimeout(() => {
+      if (!saving && !autoSaving) {
+        saveToLocalStorage();
       }
-    }
-  }, [user, isWriter]);
+    }, 5000);
+
+    return () => clearTimeout(saveTimeout);
+  }, [title, content, excerpt, tags, coverImage, saving, autoSaving, saveToLocalStorage, loadingPost]);
 
   const handleImageSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate the image file
       const validation = validateImageFile(file);
       if (!validation.valid) {
         alert(validation.error);
@@ -97,7 +133,6 @@ export default function NewPostPage() {
       setCompressionProgress(`Processing ${formatFileSize(file.size)} image...`);
 
       try {
-        // Create preview with original image
         const reader = new FileReader();
         reader.onload = (e) => {
           setImagePreview(e.target?.result as string);
@@ -120,12 +155,11 @@ export default function NewPostPage() {
     setCompressionProgress('Compressing image for optimal storage...');
 
     try {
-      // Compress the image to ensure it fits in Firestore's 1MB limit
       const compressedImage = await compressImage(imageFile, {
         maxWidth: 1200,
         maxHeight: 800,
         quality: 0.8,
-        maxSizeKB: 500 // Target 500KB to leave room for other document data
+        maxSizeKB: 500
       });
 
       setCompressionProgress('Image compressed successfully!');
@@ -144,11 +178,9 @@ export default function NewPostPage() {
     setImagePreview('');
     setCoverImage('');
     setCompressionProgress('');
-    // Update auto-save
     saveToLocalStorage();
   };
 
-  // Manual save to localStorage
   const handleManualSave = () => {
     if (title.trim() || content.trim() || excerpt.trim() || tags.trim()) {
       saveToLocalStorage();
@@ -156,24 +188,15 @@ export default function NewPostPage() {
   };
 
   const clearDraft = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('blog_post_draft');
+    if (typeof window !== 'undefined' && postId) {
+      localStorage.removeItem(`blog_post_edit_${postId}`);
       setLastSaved(null);
     }
   };
 
-  // Save on input change (debounced)
-  useEffect(() => {
-    const saveTimeout = setTimeout(() => {
-      if (!saving && !autoSaving) {
-        saveToLocalStorage();
-      }
-    }, 5000); // Save 5 seconds after user stops typing
-
-    return () => clearTimeout(saveTimeout);
-  }, [title, content, excerpt, tags, coverImage, saving, autoSaving, saveToLocalStorage]);
-
-  const handleSave = async (published: boolean = false) => {
+  const handleSave = async (published?: boolean) => {
+    if (!originalPost) return;
+    
     if (!title.trim() || !content.replace(/<[^>]*>/g, '').trim()) {
       alert('Please fill in both title and content');
       return;
@@ -184,7 +207,7 @@ export default function NewPostPage() {
     try {
       // Upload image if selected
       let imageUrl = coverImage;
-      if (imageFile && !coverImage) {
+      if (imageFile && coverImage !== originalPost.coverImage) {
         try {
           imageUrl = await uploadImage() || '';
           setCoverImage(imageUrl);
@@ -195,57 +218,66 @@ export default function NewPostPage() {
         }
       }
 
-      // Calculate reading time (rough estimate: 250 words per minute)
+      // Calculate reading time
       const wordCount = content.trim().split(/\s+/).length;
       const readingTime = Math.max(1, Math.ceil(wordCount / 250));
 
       // Parse tags
       const tagList = tags.trim() ? tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [];
 
-      // Create the post using Firestore
-      const postId = await createPost({
+      // Update the post
+      const updatedData: Partial<BlogPost> = {
         title: title.trim(),
-        content: content, // Don't trim content to preserve formatting and line breaks
+        content: content,
         excerpt: excerpt.trim() || '',
         tags: tagList,
-        published,
         readingTime,
-        publishedAt: published ? Date.now() : 0,
-        coverImage: imageUrl
-      });
+        coverImage: imageUrl,
+        updatedAt: Date.now()
+      };
 
-      const action = published ? 'published' : 'saved as draft';
+      // Only update published status if explicitly provided
+      if (published !== undefined) {
+        updatedData.published = published;
+        if (published && !originalPost.published) {
+          updatedData.publishedAt = Date.now();
+        }
+      }
+
+      await updatePost(postId, updatedData);
+
+      const action = published === true ? 'published' : published === false ? 'unpublished' : 'updated';
       alert(`Post "${title.trim()}" ${action} successfully!`);
 
       // Clear the draft from localStorage after successful save
       clearDraft();
 
-      // Redirect to the new post or admin dashboard
-      if (published) {
+      // Redirect based on action
+      if (published === true) {
         router.push(`/posts/${postId}`);
       } else {
         router.push('/admin');
       }
     } catch (error) {
-      console.error('Error saving post:', error);
-      alert('Failed to save post. Please try again.');
+      console.error('Error updating post:', error);
+      alert('Failed to update post. Please try again.');
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) {
+  if (loading || loadingPost) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted">Loading...</p>
+          <p className="text-muted">Loading post...</p>
         </div>
       </div>
     );
   }
 
-  if (!user || !isWriter) {
+  if (!user || !isWriter || !originalPost) {
     return null;
   }
 
@@ -255,16 +287,24 @@ export default function NewPostPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-serif font-bold text-foreground mb-2">
-              Write New Story
+              Edit Story
             </h1>
-            <p className="text-muted">Create your next masterpiece</p>
+            <p className="text-muted">Update your masterpiece</p>
           </div>
-          <Link
-            href="/admin"
-            className="px-4 py-2 border-2 border-muted text-muted hover:border-accent hover:text-accent rounded-lg transition-colors duration-200 font-medium"
-          >
-            Back to Dashboard
-          </Link>
+          <div className="flex items-center space-x-4">
+            <Link
+              href={`/posts/${postId}`}
+              className="px-4 py-2 border border-muted text-muted hover:border-accent hover:text-accent rounded-lg transition-colors duration-200 font-medium"
+            >
+              View Post
+            </Link>
+            <Link
+              href="/admin"
+              className="px-4 py-2 border-2 border-muted text-muted hover:border-accent hover:text-accent rounded-lg transition-colors duration-200 font-medium"
+            >
+              Back to Dashboard
+            </Link>
+          </div>
         </div>
 
         {/* Draft Recovery Notification */}
@@ -274,12 +314,12 @@ export default function NewPostPage() {
               <svg className="w-5 h-5 text-accent mr-2" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
-              <span className="text-accent font-medium">Draft recovered from {lastSaved.toLocaleDateString()} at {lastSaved.toLocaleTimeString()}</span>
+              <span className="text-accent font-medium">Changes saved locally at {lastSaved.toLocaleTimeString()}</span>
               <button
                 onClick={clearDraft}
                 className="ml-auto text-sm text-accent hover:text-accent-light underline"
               >
-                Dismiss
+                Clear
               </button>
             </div>
           </div>
@@ -381,7 +421,7 @@ export default function NewPostPage() {
             <RichTextEditor
               content={content}
               onChange={setContent}
-              placeholder="Begin writing your story here... Use the toolbar above to format text, add images, and more!"
+              placeholder="Continue writing your story here..."
             />
           </div>
         </div>
@@ -408,7 +448,7 @@ export default function NewPostPage() {
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span className="text-xs">Draft saved {lastSaved.toLocaleTimeString()}</span>
+                  <span className="text-xs">Changes saved {lastSaved.toLocaleTimeString()}</span>
                 </div>
               )}
               {!lastSaved && !autoSaving && (title.trim() || content.trim() || excerpt.trim() || tags.trim()) && (
@@ -422,33 +462,44 @@ export default function NewPostPage() {
               <button
                 onClick={clearDraft}
                 className="px-4 py-2 text-sm text-red-500 hover:text-red-600 border border-red-200 hover:border-red-300 rounded-lg transition-colors duration-200"
-                title="Clear saved draft"
+                title="Clear saved changes"
               >
-                Clear Draft
+                Clear Changes
               </button>
             )}
             <button
               onClick={handleManualSave}
               disabled={!title.trim() && !content.trim() && !excerpt.trim() && !tags.trim()}
               className="px-4 py-2 text-sm border border-accent text-accent hover:bg-accent hover:text-white rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Save draft to local storage"
+              title="Save changes to local storage"
             >
               Save Now
             </button>
+            {originalPost.published && (
+              <button
+                onClick={() => handleSave(false)}
+                disabled={saving || uploadingImage || !title.trim() || !content.replace(/<[^>]*>/g, '').trim()}
+                className="px-6 py-3 border-2 border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white rounded-lg transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploadingImage ? 'Optimizing Image...' : saving ? 'Unpublishing...' : 'Unpublish'}
+              </button>
+            )}
             <button
-              onClick={() => handleSave(false)}
+              onClick={() => handleSave()}
               disabled={saving || uploadingImage || !title.trim() || !content.replace(/<[^>]*>/g, '').trim()}
               className="px-6 py-3 border-2 border-muted text-muted hover:border-accent hover:text-accent rounded-lg transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {uploadingImage ? 'Optimizing Image...' : saving ? 'Saving...' : 'Save Draft'}
+              {uploadingImage ? 'Optimizing Image...' : saving ? 'Updating...' : 'Update'}
             </button>
-            <button
-              onClick={() => handleSave(true)}
-              disabled={saving || uploadingImage || !title.trim() || !content.replace(/<[^>]*>/g, '').trim()}
-              className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {uploadingImage ? 'Optimizing Image...' : saving ? 'Publishing...' : 'Publish Story'}
-            </button>
+            {!originalPost.published && (
+              <button
+                onClick={() => handleSave(true)}
+                disabled={saving || uploadingImage || !title.trim() || !content.replace(/<[^>]*>/g, '').trim()}
+                className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploadingImage ? 'Optimizing Image...' : saving ? 'Publishing...' : 'Publish Story'}
+              </button>
+            )}
           </div>
         </div>
       </div>

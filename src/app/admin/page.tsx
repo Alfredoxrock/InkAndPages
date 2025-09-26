@@ -289,9 +289,15 @@ export default function AdminPage() {
                     <div className="flex items-center space-x-2 ml-4">
                       <Link
                         href={`/posts/${post.id}`}
-                        className="px-3 py-2 text-sm text-accent hover:text-accent-light font-medium transition-colors duration-200"
+                        className="px-3 py-2 text-sm text-muted hover:text-accent font-medium transition-colors duration-200"
                       >
                         View
+                      </Link>
+                      <Link
+                        href={`/admin/edit/${post.id}`}
+                        className="px-3 py-2 text-sm bg-accent text-white hover:bg-accent-light rounded font-medium transition-colors duration-200"
+                      >
+                        Edit
                       </Link>
                       <button
                         onClick={() => handleDeletePost(post.id)}
