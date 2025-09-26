@@ -359,7 +359,7 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
 
   // Render conditions with logging
   console.log('EditPostClient: About to check render conditions...');
-  
+
   if (loading || loadingPost) {
     console.log('EditPostClient: Returning loading screen. loading:', loading, 'loadingPost:', loadingPost);
     return (

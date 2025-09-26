@@ -6,19 +6,27 @@ interface EditPostPageProps {
 }
 
 // Generate static params for all known posts at build time
-// Note: This only includes static posts. Dynamic posts created through admin
-// will be handled client-side in EditPostClient
+// This includes both static posts and known Firestore post IDs
 export async function generateStaticParams() {
   const staticPosts = getStaticPosts();
+  
+  // Add known Firestore post IDs that should be available for editing
+  const knownFirestorePostIds = [
+    'Iu4HU74UtKp7GsYZGGAL', // Driving into the Sunset
+    'mNhsogx7T6vdzvR6cqUT', // The Mirror of Ashes
+    'SEEVBkBUKtebJdch031K', // The Crown and the Mirror
+    '1758773878909-the-library-of-forgotten-dreams' // The Library of Forgotten Dreams
+  ];
 
-  // If no static posts exist, return an empty array
-  if (staticPosts.length === 0) {
-    return [];
-  }
+  // Combine static posts with known Firestore IDs
+  const allPostIds = [
+    ...staticPosts.map((post) => ({ id: post.id })),
+    ...knownFirestorePostIds.map((id) => ({ id }))
+  ];
 
-  return staticPosts.map((post) => ({
-    id: post.id,
-  }));
+  console.log('generateStaticParams for edit pages:', allPostIds);
+  
+  return allPostIds;
 }
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
