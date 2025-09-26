@@ -14,6 +14,8 @@ interface EditPostClientProps {
 }
 
 export default function EditPostClient({ postId }: EditPostClientProps) {
+  console.log('EditPostClient: Component initialized with postId:', postId);
+
   const { user, loading, isWriter } = useAuth();
   const router = useRouter();
   const [originalPost, setOriginalPost] = useState<BlogPost | null>(null);
@@ -31,6 +33,25 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
   const [autoSaving, setAutoSaving] = useState(false);
   const [loadingPost, setLoadingPost] = useState(true);
 
+  console.log('EditPostClient: Current state:', {
+    postId,
+    user: !!user,
+    loading,
+    isWriter,
+    loadingPost,
+    originalPost: !!originalPost
+  });
+
+  // Add rendering decision logs
+  console.log('EditPostClient: Render decision checks:', {
+    'loading || loadingPost': loading || loadingPost,
+    'loading': loading,
+    'loadingPost': loadingPost,
+    'user': !!user,
+    'isWriter': isWriter,
+    'originalPost': !!originalPost
+  });
+
   // Authentication check
   useEffect(() => {
     if (!loading && (!user || !isWriter)) {
@@ -40,19 +61,30 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
 
   // Load existing post
   useEffect(() => {
-    if (!postId || !user || !isWriter) return;
+    if (!postId || !user || !isWriter) {
+      console.log('EditPostClient: Not loading post - missing requirements:', { postId, user: !!user, isWriter });
+      return;
+    }
 
     const loadPost = async () => {
       try {
+        console.log('EditPostClient: Starting to load post with ID:', postId);
         setLoadingPost(true);
         const post = await getPostByIdAsync(postId);
 
+        console.log('EditPostClient: Post loaded result:', post);
+
         if (!post) {
-          alert('Post not found');
-          router.push('/admin');
+          console.error('EditPostClient: Post not found for ID:', postId);
+          console.error('EditPostClient: Available posts from logs show IDs like Iu4HU74UtKp7GsYZGGAL, mNhsogx7T6vdzvR6cqUT, etc.');
+          console.error('EditPostClient: But trying to load:', postId);
+
+          // Instead of redirecting immediately, let's stay on the page and show error
+          setLoadingPost(false);
           return;
         }
 
+        console.log('EditPostClient: Setting up form data for post:', post.title);
         setOriginalPost(post);
         setTitle(post.title);
         setContent(post.content);
@@ -62,10 +94,33 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
         if (post.coverImage) {
           setImagePreview(post.coverImage);
         }
+
+        // Load from localStorage if available (for unsaved changes)
+        const savedDraft = localStorage.getItem(`blog_post_edit_${postId}`);
+        if (savedDraft) {
+          console.log('EditPostClient: Found saved draft, loading...');
+          try {
+            const draftData = JSON.parse(savedDraft);
+            setTitle(draftData.title);
+            setContent(draftData.content);
+            setExcerpt(draftData.excerpt);
+            setTags(draftData.tags);
+            setCoverImage(draftData.coverImage);
+            if (draftData.imagePreview) {
+              setImagePreview(draftData.imagePreview);
+            }
+            setLastSaved(new Date(draftData.lastSaved));
+            console.log('EditPostClient: Draft loaded successfully');
+          } catch (draftError) {
+            console.error('EditPostClient: Error parsing saved draft:', draftError);
+          }
+        }
       } catch (error) {
-        console.error('Error loading post:', error);
-        alert('Error loading post');
-        router.push('/admin');
+        console.error('EditPostClient: Error loading post:', error);
+        console.error('EditPostClient: Post ID that failed:', postId);
+
+        // Don't redirect, just show the error state
+        setLoadingPost(false);
       } finally {
         setLoadingPost(false);
       }
@@ -195,12 +250,23 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
   };
 
   const handleSave = async (published?: boolean) => {
-    if (!originalPost) return;
+    if (!originalPost) {
+      console.error('EditPostClient: Cannot save - no original post loaded');
+      alert('Error: Post not loaded properly. Please refresh and try again.');
+      return;
+    }
 
     if (!title.trim() || !content.replace(/<[^>]*>/g, '').trim()) {
       alert('Please fill in both title and content');
       return;
     }
+
+    console.log('EditPostClient: Starting save process...', {
+      postId,
+      title: title.trim(),
+      published,
+      hasContent: !!content.trim()
+    });
 
     setSaving(true);
 
@@ -208,10 +274,13 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
       // Upload image if selected
       let imageUrl = coverImage;
       if (imageFile && coverImage !== originalPost.coverImage) {
+        console.log('EditPostClient: Uploading new image...');
         try {
           imageUrl = await uploadImage() || '';
           setCoverImage(imageUrl);
+          console.log('EditPostClient: Image uploaded successfully');
         } catch (imageError) {
+          console.error('EditPostClient: Image upload failed:', imageError);
           alert(`Image upload failed: ${imageError instanceof Error ? imageError.message : 'Unknown error'}`);
           setSaving(false);
           return;
@@ -244,9 +313,12 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
         }
       }
 
+      console.log('EditPostClient: Calling updatePost with data:', updatedData);
+
       await updatePost(postId, updatedData);
 
       const action = published === true ? 'published' : published === false ? 'unpublished' : 'updated';
+      console.log(`EditPostClient: Post ${action} successfully`);
       alert(`Post "${title.trim()}" ${action} successfully!`);
 
       // Clear the draft from localStorage after successful save
@@ -259,27 +331,111 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
         router.push('/admin');
       }
     } catch (error) {
-      console.error('Error updating post:', error);
-      alert('Failed to update post. Please try again.');
+      console.error('EditPostClient: Error updating post:', error);
+
+      // More detailed error handling
+      let errorMessage = 'Failed to update post. ';
+
+      if (error instanceof Error) {
+        errorMessage += error.message;
+
+        // Check for common Firebase errors
+        if (error.message.includes('permission-denied')) {
+          errorMessage += '\n\nThis might be a permissions issue. Make sure you\'re logged in as a writer.';
+        } else if (error.message.includes('not-found')) {
+          errorMessage += '\n\nThe post might have been deleted. Please check the admin dashboard.';
+        } else if (error.message.includes('network')) {
+          errorMessage += '\n\nPlease check your internet connection and try again.';
+        }
+      } else {
+        errorMessage += 'Unknown error occurred.';
+      }
+
+      alert(errorMessage);
     } finally {
       setSaving(false);
     }
   };
 
+  // Render conditions with logging
+  console.log('EditPostClient: About to check render conditions...');
+  
   if (loading || loadingPost) {
+    console.log('EditPostClient: Returning loading screen. loading:', loading, 'loadingPost:', loadingPost);
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-accent/30 border-t-accent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-muted">Loading post...</p>
+          <p className="text-xs text-muted mt-2">Post ID: {postId}</p>
+          <p className="text-xs text-muted">Auth Loading: {loading ? 'Yes' : 'No'}</p>
+          <p className="text-xs text-muted">Post Loading: {loadingPost ? 'Yes' : 'No'}</p>
+          <p className="text-xs text-muted">User: {user?.email || 'None'}</p>
+          <p className="text-xs text-muted">Is Writer: {isWriter ? 'Yes' : 'No'}</p>
         </div>
       </div>
     );
   }
 
-  if (!user || !isWriter || !originalPost) {
-    return null;
+  if (!user || !isWriter) {
+    console.log('EditPostClient: Returning access denied. user:', !!user, 'isWriter:', isWriter);
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted mb-4">Access denied. Writer authentication required.</p>
+          <p className="text-xs text-muted">User: {user?.email || 'None'}</p>
+          <p className="text-xs text-muted">Is Writer: {isWriter ? 'Yes' : 'No'}</p>
+          <p className="text-xs text-muted">Required: {process.env.NEXT_PUBLIC_WRITER_EMAIL}</p>
+        </div>
+      </div>
+    );
   }
+
+  if (!originalPost) {
+    console.log('EditPostClient: Returning post not found. originalPost:', !!originalPost);
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <h2 className="text-xl font-bold text-red-600 mb-4">Post Not Found</h2>
+          <p className="text-muted mb-4">
+            The post with ID <code className="bg-gray-100 px-2 py-1 rounded text-red-600">{postId}</code> could not be found.
+          </p>
+          <div className="text-xs text-muted mb-6 space-y-1">
+            <p><strong>Debugging Info:</strong></p>
+            <p>Post ID: {postId}</p>
+            <p>Loading State: {loadingPost ? 'Loading...' : 'Complete'}</p>
+            <p>User: {user?.email || 'None'}</p>
+            <p>Is Writer: {isWriter ? 'Yes' : 'No'}</p>
+          </div>
+          <div className="bg-yellow-50 border border-yellow-200 rounded p-4 mb-6 text-sm text-left">
+            <p className="font-medium text-yellow-800 mb-2">Possible causes:</p>
+            <ul className="list-disc list-inside text-yellow-700 space-y-1">
+              <li>The post might have been deleted</li>
+              <li>The edit link contains an incorrect post ID</li>
+              <li>There might be a permissions issue with Firestore</li>
+              <li>Network connection problem</li>
+            </ul>
+          </div>
+          <div className="space-y-3">
+            <Link
+              href="/admin"
+              className="block px-4 py-2 border border-accent text-accent hover:bg-accent hover:text-white rounded-lg transition-colors duration-200 font-medium"
+            >
+              Back to Dashboard
+            </Link>
+            <button
+              onClick={() => window.location.reload()}
+              className="block w-full px-4 py-2 border border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 rounded-lg transition-colors duration-200"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('EditPostClient: All checks passed, rendering main edit interface');
 
   return (
     <div className="min-h-screen py-8 px-6">
@@ -306,6 +462,23 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
             </Link>
           </div>
         </div>
+
+        {/* Debug Info Panel (only show in development) */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-6 p-4 bg-gray-100 border rounded-lg text-xs">
+            <h3 className="font-bold mb-2">Debug Info:</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <div>Post ID: {postId}</div>
+              <div>Original Post: {originalPost ? 'Loaded' : 'Not loaded'}</div>
+              <div>User Email: {user?.email}</div>
+              <div>Is Writer: {isWriter ? 'Yes' : 'No'}</div>
+              <div>Title: {title ? `"${title.substring(0, 20)}..."` : 'Empty'}</div>
+              <div>Content: {content ? `${content.length} chars` : 'Empty'}</div>
+              <div>Saving: {saving ? 'Yes' : 'No'}</div>
+              <div>Last Saved: {lastSaved?.toLocaleTimeString() || 'Never'}</div>
+            </div>
+          </div>
+        )}
 
         {/* Draft Recovery Notification */}
         {lastSaved && (
