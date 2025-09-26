@@ -1,3 +1,34 @@
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About the Writer - Ink & Pages',
+  description: 'Learn about the creative mind behind Ink & Pages. Discover my writing philosophy, inspirations, and the stories that shape my creative journey.',
+  keywords: ['writer', 'author', 'about', 'writing philosophy', 'creative process', 'storytelling'],
+  alternates: {
+    canonical: '/about',
+  },
+  openGraph: {
+    title: 'About the Writer - Ink & Pages',
+    description: 'Learn about the creative mind behind Ink & Pages. Discover my writing philosophy, inspirations, and the stories that shape my creative journey.',
+    type: 'profile',
+    url: 'https://inkandpages-6d158.web.app/about',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'About the Writer - Ink & Pages',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About the Writer - Ink & Pages',
+    description: 'Learn about the creative mind behind Ink & Pages. Discover my writing philosophy, inspirations, and the stories that shape my creative journey.',
+    images: ['/og-image.jpg'],
+  },
+};
+
 export default function AboutPage() {
   return (
     <div className="min-h-screen py-16 px-6">
@@ -31,23 +62,23 @@ export default function AboutPage() {
 
             <div className="bg-paper rounded-xl p-8 border border-border/20 shadow-lg">
               <h2 className="text-3xl font-serif font-bold text-foreground mb-6">Welcome to My Creative Space</h2>
-              
+
               <p className="mb-6">
-                This is more than just a blog—it's a sanctuary where thoughts transform into stories, 
-                where everyday moments become extraordinary narratives, and where the art of writing 
+                This is more than just a blog—it's a sanctuary where thoughts transform into stories,
+                where everyday moments become extraordinary narratives, and where the art of writing
                 is celebrated in all its forms.
               </p>
 
               <p className="mb-6">
-                I believe that every person has stories worth telling, experiences worth sharing, 
-                and perspectives that can illuminate the world in new ways. Through my writing, 
-                I explore the beauty in the mundane, the wisdom in struggle, and the connections 
+                I believe that every person has stories worth telling, experiences worth sharing,
+                and perspectives that can illuminate the world in new ways. Through my writing,
+                I explore the beauty in the mundane, the wisdom in struggle, and the connections
                 that bind us all together.
               </p>
 
               <p className="mb-6">
-                Whether it's a reflection on the morning ritual that grounds my day, thoughts on 
-                overcoming creative challenges, or musings on the craft of storytelling itself, 
+                Whether it's a reflection on the morning ritual that grounds my day, thoughts on
+                overcoming creative challenges, or musings on the craft of storytelling itself,
                 each piece here is written with intention and care.
               </p>
             </div>
@@ -91,19 +122,19 @@ export default function AboutPage() {
                 Let's Connect Through Stories
               </h3>
               <p className="text-muted mb-6">
-                Writing is a conversation between writer and reader. I hope these stories 
-                resonate with you, spark your own creativity, or simply provide a moment 
+                Writing is a conversation between writer and reader. I hope these stories
+                resonate with you, spark your own creativity, or simply provide a moment
                 of reflection in your busy day.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a 
+                <a
                   href="mailto:hello@inkandpages.com"
                   className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium"
                 >
                   Share Your Thoughts
                 </a>
-                <a 
+                <a
                   href="/"
                   className="px-6 py-3 border-2 border-accent text-accent hover:bg-accent hover:text-white rounded-lg transition-all duration-200 font-medium"
                 >
@@ -114,7 +145,7 @@ export default function AboutPage() {
 
             <div className="text-center text-muted italic">
               <p>
-                "Every story we tell becomes part of the larger human story. 
+                "Every story we tell becomes part of the larger human story.
                 Thank you for being part of mine."
               </p>
             </div>

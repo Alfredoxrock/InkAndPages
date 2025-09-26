@@ -8,6 +8,7 @@ import { BlogPost } from '@/lib/types';
 import { formatDistanceToNow, format } from 'date-fns';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import HtmlContentRenderer from '@/components/HtmlContentRenderer';
+import StructuredData from '@/components/StructuredData';
 import { trackPostView } from '@/lib/gtag';
 
 interface PostPageClientProps {
@@ -99,7 +100,7 @@ export default function PostPageClient({ params }: PostPageClientProps) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-background via-paper to-background">
+            <div className="bg-gradient-to-br from-background via-paper to-background">
                 <div className="container mx-auto px-4 py-16">
                     <div className="max-w-4xl mx-auto">
                         <div className="animate-pulse">
@@ -122,7 +123,8 @@ export default function PostPageClient({ params }: PostPageClientProps) {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-background via-paper to-background">
+        <div className="bg-gradient-to-br from-background via-paper to-background">
+            <StructuredData post={post} />
             <div className="container mx-auto px-4 py-16">
                 <div className="max-w-4xl mx-auto">
                     {/* Back Navigation */}
