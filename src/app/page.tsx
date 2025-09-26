@@ -121,72 +121,72 @@ export default function Home() {
               <p className="text-muted/80">Check back for fresh tales and thoughts.</p>
             </div>
           ) : (
-            <div className="space-y-12">
-              {posts.map((post, index) => (
-                <article
-                  key={post.id}
-                  className={`group relative fade-in hover-lift ${index === 0 ? 'border-2 border-accent/20 rounded-lg p-8 bg-gradient-to-br from-paper to-background ink-splash' : 'border-b border-border/30 pb-12'}`}
-                >
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                    <div className="flex items-center space-x-4 text-sm text-muted mb-2 md:mb-0">
-                      <time className="flex items-center space-x-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>{formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true })}</span>
-                      </time>
-                      <span>•</span>
-                      <span className="flex items-center space-x-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {posts.map((post) => (
+                <article key={post.id} className="bg-paper/60 backdrop-blur-sm rounded-lg border border-border/30 overflow-hidden hover:shadow-xl transition-all duration-300 group">
+                  <Link href={`/posts/${post.id}`}>
+                    {/* Image */}
+                    <div className="relative h-48 overflow-hidden">
+                      {post.coverImage ? (
+                        <img
+                          src={post.coverImage}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      ) : (
+                        <div className="h-full bg-gradient-to-br from-accent/20 to-accent-light/20 flex items-center justify-center group-hover:from-accent/30 group-hover:to-accent-light/30 transition-all duration-300">
+                          <div className="w-16 h-16 bg-accent/30 rounded-full flex items-center justify-center group-hover:bg-accent/40 transition-all duration-300">
+                            <svg className="w-8 h-8 text-accent" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+
+                    <div className="p-6">
+                      <div className="flex items-center text-sm text-muted mb-3">
+                        <time className="font-medium">
+                          {(() => {
+                            try {
+                              return formatDistanceToNow(new Date(post.publishedAt), { addSuffix: true });
+                            } catch (error) {
+                              return 'Recently published';
+                            }
+                          })()}
+                        </time>
+                        <span className="mx-2">•</span>
                         <span>{post.readingTime} min read</span>
-                      </span>
+                      </div>
+
+                      <h2 className="text-xl font-serif font-bold text-foreground mb-3 leading-tight group-hover:text-accent transition-colors line-clamp-2">
+                        {post.title}
+                      </h2>
+
+                      <p className="text-muted leading-relaxed mb-4 line-clamp-3">
+                        {post.excerpt || 'No excerpt available'}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex gap-2 flex-wrap">
+                          {post.tags.slice(0, 2).map((tag) => (
+                            <span key={tag} className="px-2 py-1 bg-accent/10 text-accent text-xs rounded-full">
+                              #{tag}
+                            </span>
+                          ))}
+                          {post.tags.length > 2 && (
+                            <span className="px-2 py-1 bg-muted/10 text-muted text-xs rounded-full">
+                              +{post.tags.length - 2}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center text-accent hover:text-accent-light text-sm font-medium">
+                          Read →
+                        </div>
+                      </div>
                     </div>
-
-                    {index === 0 && (
-                      <span className="inline-block px-3 py-1 bg-accent text-white text-xs font-medium rounded-full">
-                        Featured
-                      </span>
-                    )}
-                  </div>
-
-                  <Link href={`/posts/${post.id}`} className="block group-hover:text-accent transition-colors duration-200">
-                    <h2 className="text-2xl md:text-3xl font-serif font-bold text-foreground mb-4 leading-tight group-hover:text-accent transition-colors duration-200">
-                      {post.title}
-                    </h2>
                   </Link>
-
-                  <p className="text-lg text-muted leading-relaxed mb-6 line-clamp-3">
-                    {post.excerpt}
-                  </p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-wrap gap-2">
-                      {post.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-block px-3 py-1 bg-accent/10 text-accent text-sm rounded-full hover:bg-accent/20 transition-colors duration-200"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <a
-                      href={`/posts/${post.id}`}
-                      className="inline-flex items-center text-accent hover:text-accent-light font-medium transition-colors duration-200 group/link"
-                      onClick={(e) => {
-                        console.log('Read Story clicked for post:', post.id, post.title);
-                        // Let the default navigation happen
-                      }}
-                    >
-                      Read Story
-                      <svg className="w-4 h-4 ml-2 transition-transform duration-200 group-hover/link:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </a>
-                  </div>
                 </article>
               ))}
             </div>

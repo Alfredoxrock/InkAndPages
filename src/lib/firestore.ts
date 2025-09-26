@@ -38,6 +38,7 @@ const docToPost = (doc: QueryDocumentSnapshot<DocumentData>): BlogPost => {
         tags: data.tags || [],
         createdAt: data.createdAt?.toDate?.()?.getTime() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.()?.getTime() || data.updatedAt,
+        coverImage: data.coverImage || undefined,
     };
 };
 
