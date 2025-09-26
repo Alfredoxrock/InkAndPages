@@ -23,6 +23,6 @@ export async function generateStaticParams() {
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
   const { id } = await params;
-  
+
   return <EditPostClient postId={id} />;
 }

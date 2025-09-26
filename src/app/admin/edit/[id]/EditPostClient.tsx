@@ -41,12 +41,12 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
   // Load existing post
   useEffect(() => {
     if (!postId || !user || !isWriter) return;
-    
+
     const loadPost = async () => {
       try {
         setLoadingPost(true);
         const post = await getPostByIdAsync(postId);
-        
+
         if (!post) {
           alert('Post not found');
           router.push('/admin');
@@ -95,7 +95,7 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
   // Auto-save every 30 seconds
   useEffect(() => {
     if (loadingPost) return;
-    
+
     const autoSaveInterval = setInterval(() => {
       if (!saving && !autoSaving && (title.trim() || content.trim() || excerpt.trim() || tags.trim())) {
         setAutoSaving(true);
@@ -110,7 +110,7 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
   // Save on input change (debounced)
   useEffect(() => {
     if (loadingPost) return;
-    
+
     const saveTimeout = setTimeout(() => {
       if (!saving && !autoSaving) {
         saveToLocalStorage();
@@ -196,7 +196,7 @@ export default function EditPostClient({ postId }: EditPostClientProps) {
 
   const handleSave = async (published?: boolean) => {
     if (!originalPost) return;
-    
+
     if (!title.trim() || !content.replace(/<[^>]*>/g, '').trim()) {
       alert('Please fill in both title and content');
       return;

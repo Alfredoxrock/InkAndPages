@@ -191,11 +191,10 @@ export default function PostPageClient({ params }: PostPageClientProps) {
                                             </svg>
                                             Edit Post
                                         </Link>
-                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                            post.published 
-                                                ? 'bg-green-100 text-green-800' 
+                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${post.published
+                                                ? 'bg-green-100 text-green-800'
                                                 : 'bg-orange-100 text-orange-800'
-                                        }`}>
+                                            }`}>
                                             {post.published ? 'Published' : 'Draft'}
                                         </span>
                                     </div>
@@ -301,7 +300,7 @@ export default function PostPageClient({ params }: PostPageClientProps) {
                                     </Link>
                                 </div>
                             </div>
-                            
+
                             {/* Writer Actions */}
                             {isWriter && (
                                 <div className="flex items-center space-x-3">

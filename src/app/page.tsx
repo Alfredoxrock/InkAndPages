@@ -141,7 +141,7 @@ export default function Home() {
                       </Link>
                     </div>
                   )}
-                  
+
                   <Link href={`/posts/${post.id}`}>
                     {/* Image */}
                     <div className="relative h-48 overflow-hidden">
