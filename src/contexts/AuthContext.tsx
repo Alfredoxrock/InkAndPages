@@ -26,21 +26,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const writerEmail = process.env.NEXT_PUBLIC_WRITER_EMAIL;
     const isWriter = user?.email === writerEmail;
 
+    // Log setup on initial render
     console.log('AuthProvider setup:', {
         writerEmail,
         userEmail: user?.email,
-        isWriter
+        isWriter,
+        loading
     });
+
+    // Log whenever user or isWriter changes
+    useEffect(() => {
+        console.log('AuthProvider state update:', {
+            userEmail: user?.email,
+            isWriter,
+            loading,
+            writerEmail
+        });
+    }, [user, isWriter, loading, writerEmail]);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             console.log('Auth state changed:', user?.email || 'No user');
             setUser(user);
             setLoading(false);
+            
+            // Log the updated auth state after user is set
+            const updatedIsWriter = user?.email === writerEmail;
+            console.log('AuthProvider updated state:', {
+                writerEmail,
+                userEmail: user?.email,
+                isWriter: updatedIsWriter,
+                loading: false
+            });
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [writerEmail]);
 
     const signIn = async (email: string, password: string) => {
         console.log('AuthContext signIn called with email:', email);
