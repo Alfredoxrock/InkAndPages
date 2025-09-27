@@ -9,7 +9,7 @@ interface EditPostPageProps {
 // This includes both static posts and known Firestore post IDs
 export async function generateStaticParams() {
   const staticPosts = getStaticPosts();
-  
+
   // Add known Firestore post IDs that should be available for editing
   const knownFirestorePostIds = [
     'Iu4HU74UtKp7GsYZGGAL', // Driving into the Sunset
@@ -25,7 +25,7 @@ export async function generateStaticParams() {
   ];
 
   console.log('generateStaticParams for edit pages:', allPostIds);
-  
+
   return allPostIds;
 }
 
