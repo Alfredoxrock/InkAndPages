@@ -17,6 +17,7 @@ export default function Home() {
 
   useEffect(() => {
     console.log('Homepage component loaded');
+    console.log('🦇 BATMAN - dreamlogtogether.com deployment test 🦇');
     console.log('Current URL:', window.location.href);
     console.log('Current pathname:', window.location.pathname);
 
@@ -140,13 +141,13 @@ export default function Home() {
                     <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                       <Link
                         href={`/admin/edit/${post.id}`}
-                        className="inline-flex items-center px-3 py-1 bg-white/90 backdrop-blur-sm text-accent hover:text-accent-light border border-accent/20 rounded-full text-sm font-medium shadow-sm transition-all duration-200"
+                        className="inline-flex items-center px-3 py-1.5 bg-white text-accent hover:bg-accent hover:text-white border border-accent rounded-full text-sm font-semibold shadow-md transition-all duration-200 hover:shadow-lg"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
-                        Edit
+                        <span className="text-sm font-semibold">Edit</span>
                       </Link>
                     </div>
                   )}
