@@ -20,6 +20,15 @@ export default function Home() {
     console.log('Current URL:', window.location.href);
     console.log('Current pathname:', window.location.pathname);
 
+    // WARNING: This component should NOT be running for /admin/edit routes!
+    if (window.location.pathname.startsWith('/admin/edit/')) {
+      console.error('🚨 ROUTING ERROR: Homepage is loading for an edit route!');
+      console.error('This indicates a routing problem - the edit page is not being served correctly');
+      console.error('Expected: EditPostPage component should be rendering');
+      console.error('Actual: Homepage component is rendering instead');
+      return; // Don't continue with homepage logic
+    }
+
     // Check if we're actually on a post URL
     const pathname = window.location.pathname;
     const postMatch = pathname.match(/^\/posts\/(.+)$/);

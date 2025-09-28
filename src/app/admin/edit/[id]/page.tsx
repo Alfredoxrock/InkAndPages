@@ -30,7 +30,9 @@ export async function generateStaticParams() {
 }
 
 export default async function EditPostPage({ params }: EditPostPageProps) {
+  console.log('=== EditPostPage SERVER COMPONENT CALLED ===');
   const { id } = await params;
+  console.log('EditPostPage: Resolved post ID:', id);
 
   return <EditPostClient postId={id} />;
 }

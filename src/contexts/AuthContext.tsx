@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log('Auth state changed:', user?.email || 'No user');
             setUser(user);
             setLoading(false);
-            
+
             // Log the updated auth state after user is set
             const updatedIsWriter = user?.email === writerEmail;
             console.log('AuthProvider updated state:', {
