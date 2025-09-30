@@ -142,27 +142,36 @@ export const getPostById = async (id: string): Promise<BlogPost | null> => {
     try {
         // Validate the ID
         if (!id || typeof id !== 'string' || id.trim() === '') {
-            console.log('Invalid post ID provided:', id);
+            console.log('[Firestore:getPostById] Invalid post ID provided:', id);
             return null;
         }
 
         // Clean the ID (Firestore doesn't like certain characters)
         const cleanId = id.trim();
+        console.log(`[Firestore:getPostById] Querying Firestore for post ID: '${cleanId}'`);
 
-        console.log('Querying Firestore for post ID:', cleanId);
         const docRef = doc(db, POSTS_COLLECTION, cleanId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             const post = docToPost(docSnap as QueryDocumentSnapshot<DocumentData>);
-            console.log('Retrieved post from Firestore:', post.title);
+            console.log('[Firestore:getPostById] Retrieved post:', {
+                id: post.id,
+                title: post.title,
+                published: post.published,
+                publishedAt: post.publishedAt,
+                tags: post.tags,
+                coverImage: post.coverImage,
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt
+            });
             return post;
         } else {
-            console.log('No post found with ID in Firestore:', cleanId);
+            console.log(`[Firestore:getPostById] No post found with ID: '${cleanId}'`);
             return null;
         }
     } catch (error) {
-        console.error('Error getting post by ID from Firestore:', error);
+        console.error('[Firestore:getPostById] Error getting post by ID:', error, 'Queried ID:', id);
         return null; // Return null instead of throwing to allow fallback
     }
 };

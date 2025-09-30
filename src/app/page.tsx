@@ -16,48 +16,73 @@ export default function Home() {
   const [postId, setPostId] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log('Homepage component loaded');
-    console.log('🦇 BATMAN - dreamlogtogether.com deployment test 🦇');
-    console.log('Current URL:', window.location.href);
-    console.log('Current pathname:', window.location.pathname);
+    try {
+      console.log('Homepage component loaded');
+      console.log('Current URL:', window.location.href);
+      console.log('Current pathname:', window.location.pathname);
 
-    // WARNING: This component should NOT be running for /admin/edit routes!
-    if (window.location.pathname.startsWith('/admin/edit/')) {
-      console.error('🚨 ROUTING ERROR: Homepage is loading for an edit route!');
-      console.error('This indicates a routing problem - the edit page is not being served correctly');
-      console.error('Expected: EditPostPage component should be rendering');
-      console.error('Actual: Homepage component is rendering instead');
-      return; // Don't continue with homepage logic
-    }
-
-    // Check if we're actually on a post URL
-    const pathname = window.location.pathname;
-    const postMatch = pathname.match(/^\/posts\/(.+)$/);
-
-    if (postMatch) {
-      console.log('Detected post URL, extracting post ID:', postMatch[1]);
-      setIsPostRoute(true);
-      setPostId(postMatch[1]);
-      return; // Don't load homepage posts if we're on a post route
-    }
-
-    const loadPosts = async () => {
-      try {
-        const publishedPosts = await getPublishedPosts();
-        console.log('Loaded posts on homepage:', publishedPosts);
-        console.log('Number of posts:', publishedPosts.length);
-        publishedPosts.forEach(post => {
-          console.log(`Post: ${post.title} - ID: ${post.id} - Published: ${post.published}`);
-        });
-        setPosts(publishedPosts);
-      } catch (error) {
-        console.error('Error loading posts:', error);
-      } finally {
-        setLoading(false);
+      // WARNING: This component should NOT be running for /admin/edit routes!
+      if (window.location.pathname.startsWith('/admin/edit/')) {
+        console.error('🚨 ROUTING ERROR: Homepage is loading for an edit route!');
+        console.error('This indicates a routing problem - the edit page is not being served correctly');
+        console.error('Expected: EditPostPage component should be rendering');
+        console.error('Actual: Homepage component is rendering instead');
+        return; // Don't continue with homepage logic
       }
-    };
 
-    loadPosts();
+      // Check if we're actually on a post URL
+      let pathname;
+      try {
+        pathname = window.location.pathname;
+      } catch (err) {
+        console.error('[Homepage useEffect] Error accessing window.location.pathname:', err);
+        setLoading(false);
+        return;
+      }
+      let postMatch;
+      try {
+        postMatch = pathname.match(/^\/posts\/(.+)$/);
+      } catch (err) {
+        console.error('[Homepage useEffect] Error matching post URL:', err);
+        setLoading(false);
+        return;
+      }
+
+      if (postMatch) {
+        console.log('Detected post URL, extracting post ID:', postMatch[1]);
+        setIsPostRoute(true);
+        setPostId(postMatch[1]);
+        return; // Don't load homepage posts if we're on a post route
+      }
+
+      const loadPosts = async () => {
+        try {
+          const publishedPosts = await getPublishedPosts();
+          console.log('Loaded posts on homepage:', publishedPosts);
+          if (!Array.isArray(publishedPosts)) {
+            console.error('[Homepage useEffect] getPublishedPosts did not return an array:', publishedPosts);
+          }
+          console.log('Number of posts:', publishedPosts.length);
+          publishedPosts.forEach(post => {
+            if (!post || !post.id) {
+              console.error('[Homepage useEffect] Invalid post object:', post);
+            } else {
+              console.log(`Post: ${post.title} - ID: ${post.id} - Published: ${post.published}`);
+            }
+          });
+          setPosts(publishedPosts);
+        } catch (error) {
+          console.error('[Homepage useEffect] Error loading posts:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadPosts();
+    } catch (outerError) {
+      console.error('[Homepage useEffect] Outer error:', outerError);
+      setLoading(false);
+    }
   }, []);
 
   // If we detected a post URL, render the PostPageClient instead of homepage
@@ -136,22 +161,6 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {posts.map((post) => (
                 <article key={post.id} className="bg-paper/60 backdrop-blur-sm rounded-lg border border-border/30 overflow-hidden hover:shadow-xl transition-all duration-300 group relative">
-                  {/* Writer Controls - Only show for writers */}
-                  {isWriter && (
-                    <div className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <Link
-                        href={`/admin/edit/${post.id}`}
-                        className="inline-flex items-center px-3 py-1.5 bg-white text-accent hover:bg-accent hover:text-white border border-accent rounded-full text-sm font-semibold shadow-md transition-all duration-200 hover:shadow-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                        <span className="text-sm font-semibold">Edit</span>
-                      </Link>
-                    </div>
-                  )}
-
                   <Link href={`/posts/${post.id}`}>
                     {/* Image */}
                     <div className="relative h-48 overflow-hidden">

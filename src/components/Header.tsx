@@ -54,12 +54,6 @@ export default function Header() {
             >
               About
             </Link>
-            <Link
-              href="/admin"
-              className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium shadow-lg hover:shadow-xl"
-            >
-              Write
-            </Link>
           </nav>
 
           {/* Mobile menu button */}
@@ -95,13 +89,7 @@ export default function Header() {
               >
                 About
               </Link>
-              <Link
-                href="/admin"
-                className="inline-block px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium shadow-lg w-fit"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Write
-              </Link>
+              {/* Write button removed from mobile menu */}
             </div>
           </div>
         )}

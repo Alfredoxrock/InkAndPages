@@ -129,7 +129,7 @@ export default function AboutPage() {
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="mailto:hello@inkandpages.com"
+                  href="mailto:alfredoxrocks@gmail.com"
                   className="px-6 py-3 bg-accent text-white rounded-lg hover:bg-accent-light transition-colors duration-200 font-medium"
                 >
                   Share Your Thoughts
