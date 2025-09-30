@@ -9,11 +9,19 @@ import PostPageClient from "@/app/posts/[id]/PostPageClient";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function Home() {
-  const { isWriter } = useAuth();
+  const { isWriter, user, loading: authLoading } = useAuth();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPostRoute, setIsPostRoute] = useState(false);
   const [postId, setPostId] = useState<string | null>(null);
+
+  // Debug: Log AuthProvider state on every render
+  console.log('[Home] Render: AuthProvider state:', {
+    isWriter,
+    user,
+    authLoading
+  });
+  console.log('[Home] Render: posts.length:', posts.length, 'loading:', loading, 'isPostRoute:', isPostRoute, 'postId:', postId);
 
   useEffect(() => {
     try {
@@ -57,23 +65,26 @@ export default function Home() {
 
       const loadPosts = async () => {
         try {
+          console.log('[loadPosts] Called');
           const publishedPosts = await getPublishedPosts();
-          console.log('Loaded posts on homepage:', publishedPosts);
+          console.log('[loadPosts] getPublishedPosts resolved:', publishedPosts);
           if (!Array.isArray(publishedPosts)) {
-            console.error('[Homepage useEffect] getPublishedPosts did not return an array:', publishedPosts);
+            console.error('[loadPosts] getPublishedPosts did not return an array:', publishedPosts);
+          } else {
+            console.log('[loadPosts] Number of posts:', publishedPosts.length);
+            publishedPosts.forEach((post, idx) => {
+              if (!post || !post.id) {
+                console.error(`[loadPosts] Invalid post object at index ${idx}:`, post);
+              } else {
+                console.log(`[loadPosts] Post ${idx}:`, post);
+              }
+            });
           }
-          console.log('Number of posts:', publishedPosts.length);
-          publishedPosts.forEach(post => {
-            if (!post || !post.id) {
-              console.error('[Homepage useEffect] Invalid post object:', post);
-            } else {
-              console.log(`Post: ${post.title} - ID: ${post.id} - Published: ${post.published}`);
-            }
-          });
           setPosts(publishedPosts);
         } catch (error) {
-          console.error('[Homepage useEffect] Error loading posts:', error);
+          console.error('[loadPosts] Error loading posts:', error);
         } finally {
+          console.log('[loadPosts] Setting loading to false');
           setLoading(false);
         }
       };
@@ -85,12 +96,15 @@ export default function Home() {
     }
   }, []);
 
-  // If we detected a post URL, render the PostPageClient instead of homepage
+
+  // Debug: Log when deciding what to render
   if (isPostRoute && postId) {
-    console.log('Rendering PostPageClient for post ID:', postId);
+    console.log('[Home] Rendering PostPageClient for post ID:', postId);
     const mockParams = Promise.resolve({ id: postId });
     return <PostPageClient params={mockParams} />;
   }
+
+  console.log('[Home] Rendering homepage UI');
 
   return (
     <div className="relative min-h-screen">
