@@ -24,6 +24,21 @@ export const metadata: Metadata = {
     siteName: "Ink & Pages",
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.jpg', // We'll create this
+        width: 1200,
+        height: 630,
+        alt: 'Ink & Pages - Where stories come to life',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Ink & Pages - A Writer's Blog",
+    description: "Where thoughts flow like ink onto pages, creating stories that inspire and connect.",
+    creator: '@inkandpages', // Replace with your Twitter handle
+    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
@@ -36,8 +51,10 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  verification: {
+    google: '', // Add your Google Search Console verification code
+  },
 };
-
 
 export default function RootLayout({
   children,
