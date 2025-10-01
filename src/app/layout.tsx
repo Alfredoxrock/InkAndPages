@@ -24,14 +24,6 @@ export const metadata: Metadata = {
     siteName: "Ink & Pages",
     locale: 'en_US',
     type: 'website',
-    images: [
-      {
-        url: '/og-image.jpg', // We'll create this
-        width: 1200,
-        height: 630,
-        alt: 'Ink & Pages - Where stories come to life',
-      },
-    ],
   },
   robots: {
     index: true,
