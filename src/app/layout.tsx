@@ -7,21 +7,21 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { GA_TRACKING_ID } from "@/lib/gtag";
 
 export const metadata: Metadata = {
-  title: "Ink & Pages - A Writer's Blog",
+  title: "Dream Log Together - A Writer's Blog",
   description: "Where thoughts flow like ink onto pages, creating stories that inspire and connect. Discover personal essays, writing tips, and creative stories.",
   keywords: ["writing", "blog", "stories", "creativity", "personal essays", "inspiration", "writer"],
-  authors: [{ name: "Ink & Pages" }],
-  creator: "Ink & Pages",
-  publisher: "Ink & Pages",
+  authors: [{ name: "Dream Log Together" }],
+  creator: "Dream Log Together",
+  publisher: "Dream Log Together",
   metadataBase: new URL('https://inkandpages-6d158.web.app'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: "Ink & Pages - A Writer's Blog",
+    title: "Dream Log Together - A Writer's Blog",
     description: "Where thoughts flow like ink onto pages, creating stories that inspire and connect.",
     url: 'https://inkandpages-6d158.web.app',
-    siteName: "Ink & Pages",
+    siteName: "Dream Log Together",
     locale: 'en_US',
     type: 'website',
     images: [
@@ -29,13 +29,13 @@ export const metadata: Metadata = {
         url: '/og-image.jpg', // We'll create this
         width: 1200,
         height: 630,
-        alt: 'Ink & Pages - Where stories come to life',
+        alt: 'Dream Log Together - Where stories come to life',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Ink & Pages - A Writer's Blog",
+    title: "Dream Log Together - A Writer's Blog",
     description: "Where thoughts flow like ink onto pages, creating stories that inspire and connect.",
     creator: '@inkandpages', // Replace with your Twitter handle
     images: ['/og-image.jpg'],
