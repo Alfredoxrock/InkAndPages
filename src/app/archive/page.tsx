@@ -49,7 +49,7 @@ export default function ArchivePage() {
 
     return (
         <div className="min-h-screen py-12 px-6">
-            <div className="max-w-4xl mx-auto">
+            <div className="w-full mx-auto">
                 {/* Header */}
                 <div className="text-center mb-12">
                     <h1 className="text-4xl font-serif font-bold text-foreground mb-4">
