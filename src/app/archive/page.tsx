@@ -102,7 +102,7 @@ export default function ArchivePage() {
                 ) : (
                     /* Posts grid */
                     <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                        {posts.map((post) => (
+                        {posts.slice(0, 16).map((post) => (
                             <article
                                 key={post.id}
                                 className="bg-paper rounded-lg border border-border/20 p-8 hover:border-accent/30 transition-colors duration-200 flex flex-col h-full"
