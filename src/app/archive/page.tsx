@@ -101,77 +101,59 @@ export default function ArchivePage() {
                     </div>
                 ) : (
                     /* Posts grid */
-                    <div className="grid gap-8 grid-cols-4">
+                    <div className="grid grid-cols-4 gap-8">
                         {posts.slice(0, 16).map((post) => (
                             <article
                                 key={post.id}
-                                className="bg-paper rounded-lg border border-border/20 p-8 hover:border-accent/30 transition-colors duration-200 flex flex-col h-full"
+                                className="bg-paper/60 backdrop-blur-sm rounded-lg border border-border/30 overflow-hidden hover:shadow-xl transition-all duration-300 group relative flex flex-col h-full"
                             >
-                                <div className="flex-1">
-                                    <Link href={`/posts/${post.id}`}>
-                                        <h2 className="text-2xl font-serif font-bold text-foreground hover:text-accent transition-colors duration-200 mb-2">
+                                <Link href={`/posts/${post.id}`}>
+                                    {/* Image */}
+                                    <div className="relative h-40 overflow-hidden">
+                                        {post.coverImage ? (
+                                            <img
+                                                src={post.coverImage}
+                                                alt={post.title}
+                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                            />
+                                        ) : (
+                                            <div className="h-full bg-gradient-to-br from-accent/20 to-accent-light/20 flex items-center justify-center group-hover:from-accent/30 group-hover:to-accent-light/30 transition-all duration-300">
+                                                <div className="w-12 h-12 bg-accent/30 rounded-full flex items-center justify-center group-hover:bg-accent/40 transition-all duration-300">
+                                                    <svg className="w-6 h-6 text-accent" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    </div>
+
+                                    <div className="p-6 flex flex-col h-full">
+                                        <div className="flex items-center text-xs text-muted mb-2">
+                                            <span>{formatDate(post.publishedAt)}</span>
+                                            <span className="mx-2">•</span>
+                                            <span>{post.readingTime ? `${post.readingTime} min read` : 'Story'}</span>
+                                        </div>
+                                        <h2 className="text-lg font-serif font-bold text-foreground mb-2 leading-tight group-hover:text-accent transition-colors line-clamp-2">
                                             {post.title}
                                         </h2>
-                                    </Link>
-
-                                    <div className="flex items-center text-sm text-muted mb-3">
-                                        <span>{formatDate(post.publishedAt)}</span>
-                                        <span className="mx-2">•</span>
-                                        <span>by Dream Log Together</span>
-                                        {post.tags.length > 0 && (
-                                            <>
-                                                <span className="mx-2">•</span>
-                                                <div className="flex items-center space-x-2">
-                                                    {post.tags.slice(0, 3).map((tag) => (
-                                                        <span
-                                                            key={tag}
-                                                            className="px-2 py-1 bg-accent/10 text-accent text-xs rounded-full"
-                                                        >
-                                                            {tag}
-                                                        </span>
-                                                    ))}
-                                                    {post.tags.length > 3 && (
-                                                        <span className="text-xs text-muted">
-                                                            +{post.tags.length - 3} more
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {post.excerpt && (
-                                        <p className="text-muted leading-relaxed mb-4">
-                                            {post.excerpt}
+                                        <p className="text-muted leading-relaxed mb-4 line-clamp-3">
+                                            {post.excerpt || 'No excerpt available'}
                                         </p>
-                                    )}
-                                </div>
-
-                                <div className="flex items-center justify-between mt-4">
-                                    <Link
-                                        href={`/posts/${post.id}`}
-                                        className="inline-flex items-center text-accent hover:text-accent-light font-medium transition-colors duration-200"
-                                    >
-                                        Read Story
-                                        <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                                        </svg>
-                                    </Link>
-
-                                    {post.updatedAt && post.updatedAt !== post.publishedAt && (
-                                        <span className="text-xs text-muted">
-                                            Updated {formatDate(post.updatedAt)}
-                                        </span>
-                                    )}
-                                </div>
-                                {post.published && (
-                                    <div className="flex-shrink-0 mt-4">
-                                        <span className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                            <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                                            Published
-                                        </span>
+                                        <div className="flex gap-2 flex-wrap mt-auto">
+                                            {post.tags.slice(0, 2).map((tag) => (
+                                                <span key={tag} className="px-2 py-1 bg-accent/10 text-accent text-xs rounded-full">
+                                                    #{tag}
+                                                </span>
+                                            ))}
+                                            {post.tags.length > 2 && (
+                                                <span className="px-2 py-1 bg-muted/10 text-muted text-xs rounded-full">
+                                                    +{post.tags.length - 2}
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
-                                )}
+                                </Link>
                             </article>
                         ))}
                     </div>
