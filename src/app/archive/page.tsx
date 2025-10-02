@@ -100,65 +100,54 @@ export default function ArchivePage() {
                         </Link>
                     </div>
                 ) : (
-                    /* Posts list */
-                    <div className="space-y-8">
+                    /* Posts grid */
+                    <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         {posts.map((post) => (
                             <article
                                 key={post.id}
-                                className="bg-paper rounded-lg border border-border/20 p-8 hover:border-accent/30 transition-colors duration-200"
+                                className="bg-paper rounded-lg border border-border/20 p-8 hover:border-accent/30 transition-colors duration-200 flex flex-col h-full"
                             >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex-1">
-                                        <Link href={`/posts/${post.id}`}>
-                                            <h2 className="text-2xl font-serif font-bold text-foreground hover:text-accent transition-colors duration-200 mb-2">
-                                                {post.title}
-                                            </h2>
-                                        </Link>
+                                <div className="flex-1">
+                                    <Link href={`/posts/${post.id}`}>
+                                        <h2 className="text-2xl font-serif font-bold text-foreground hover:text-accent transition-colors duration-200 mb-2">
+                                            {post.title}
+                                        </h2>
+                                    </Link>
 
-                                        <div className="flex items-center text-sm text-muted mb-3">
-                                            <span>{formatDate(post.publishedAt)}</span>
-                                            <span className="mx-2">•</span>
-                                            <span>by Ink & Pages</span>
-                                            {post.tags.length > 0 && (
-                                                <>
-                                                    <span className="mx-2">•</span>
-                                                    <div className="flex items-center space-x-2">
-                                                        {post.tags.slice(0, 3).map((tag) => (
-                                                            <span
-                                                                key={tag}
-                                                                className="px-2 py-1 bg-accent/10 text-accent text-xs rounded-full"
-                                                            >
-                                                                {tag}
-                                                            </span>
-                                                        ))}
-                                                        {post.tags.length > 3 && (
-                                                            <span className="text-xs text-muted">
-                                                                +{post.tags.length - 3} more
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </>
-                                            )}
-                                        </div>
+                                    <div className="flex items-center text-sm text-muted mb-3">
+                                        <span>{formatDate(post.publishedAt)}</span>
+                                        <span className="mx-2">•</span>
+                                        <span>by Dream Log Together</span>
+                                        {post.tags.length > 0 && (
+                                            <>
+                                                <span className="mx-2">•</span>
+                                                <div className="flex items-center space-x-2">
+                                                    {post.tags.slice(0, 3).map((tag) => (
+                                                        <span
+                                                            key={tag}
+                                                            className="px-2 py-1 bg-accent/10 text-accent text-xs rounded-full"
+                                                        >
+                                                            {tag}
+                                                        </span>
+                                                    ))}
+                                                    {post.tags.length > 3 && (
+                                                        <span className="text-xs text-muted">
+                                                            +{post.tags.length - 3} more
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
 
-                                    {post.published && (
-                                        <div className="flex-shrink-0 ml-4">
-                                            <span className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                                                <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
-                                                Published
-                                            </span>
-                                        </div>
+                                    {post.excerpt && (
+                                        <p className="text-muted leading-relaxed mb-4">
+                                            {post.excerpt}
+                                        </p>
                                     )}
                                 </div>
 
-                                {post.excerpt && (
-                                    <p className="text-muted leading-relaxed mb-4">
-                                        {post.excerpt}
-                                    </p>
-                                )}
-
-                                <div className="flex items-center justify-between">
+                                <div className="flex items-center justify-between mt-4">
                                     <Link
                                         href={`/posts/${post.id}`}
                                         className="inline-flex items-center text-accent hover:text-accent-light font-medium transition-colors duration-200"
@@ -175,6 +164,14 @@ export default function ArchivePage() {
                                         </span>
                                     )}
                                 </div>
+                                {post.published && (
+                                    <div className="flex-shrink-0 mt-4">
+                                        <span className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                                            <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                                            Published
+                                        </span>
+                                    </div>
+                                )}
                             </article>
                         ))}
                     </div>
