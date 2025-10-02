@@ -101,7 +101,7 @@ export default function ArchivePage() {
                     </div>
                 ) : (
                     /* Posts grid */
-                    <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid gap-8 grid-cols-4">
                         {posts.slice(0, 16).map((post) => (
                             <article
                                 key={post.id}
